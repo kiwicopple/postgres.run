@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PGlite Test</title>
+</head>
+<body>
+  <h1>For testing catalog</h1>
+  <p>Open the console to see the output.</p>
+</body>
+</html>
+
+<script type="module">
+  // import { PGlite } from "./dist/index.js";
+  import { PGlite } from "https://cdn.jsdelivr.net/npm/@electric-sql/pglite/dist/index.js";
+
+  console.log("Starting...");
+  // const pg = new PGlite();
+  const pg = new PGlite('idb://pgdata');
+
+  console.log("Waiting for ready...");
+  await pg.waitReady;
+
+  // process.exit(0);
+
+  console.log("Ready!");
+  
+  const catalog = await pg.query(`
+  with data as (
+    SELECT nspname||'.'||relname AS full_rel_name
+    FROM pg_class, pg_namespace
+    WHERE relnamespace = pg_namespace.oid
+    AND nspname = 'pg_catalog'
+    AND relkind = 'r'
+  )
+  select *
+  from data
+  order by full_rel_name asc;`);
+
+  console.log('catalog', catalog)
+
+  console.log("Closing...");
+  await pg.close();
+
+  // async timeout 1s
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+</script>
